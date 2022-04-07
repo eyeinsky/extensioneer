@@ -1,0 +1,62 @@
+name: extensioneer
+version: '0.1.0.0'
+category: CLI
+author: Markus Läll
+maintainer: markus.l2ll@gmail.com
+license: GPL-2
+
+dependencies:
+- base
+- containers
+- hpack
+- mtl
+- optparse-applicative
+- yaml
+
+executable:
+  main: Main.hs
+  source-dirs: src
+
+default-extensions:
+- Arrows
+- BangPatterns
+- ConstraintKinds
+- DataKinds
+- DefaultSignatures
+- DeriveDataTypeable
+- DeriveFunctor
+- DeriveGeneric
+- DerivingStrategies
+- DerivingVia
+- EmptyDataDecls
+- ExtendedDefaultRules
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GADTs
+- GeneralizedNewtypeDeriving
+- InstanceSigs
+- ImportQualifiedPost
+- KindSignatures
+- LambdaCase
+- MultiParamTypeClasses
+- NamedFieldPuns
+- NoImplicitPrelude
+- NoMonomorphismRestriction
+- OverloadedStrings
+- PolyKinds
+- QuasiQuotes
+- RankNTypes
+- RecordWildCards
+- RecursiveDo
+- ScopedTypeVariables
+- StandaloneDeriving
+- StandaloneKindSignatures
+- TemplateHaskell
+- TupleSections
+- TypeApplications
+- TypeFamilies
+- TypeInType
+- TypeOperators
+- TypeSynonymInstances
+- UndecidableInstances
