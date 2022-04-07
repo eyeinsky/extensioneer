@@ -1,0 +1,259 @@
+- AllowAmbiguousTypes:
+  description: Allow the user to write ambiguous types, and the type inference engine to infer them.
+- ApplicativeDo:
+  description: Enable Applicative do-notation desugaring
+- Arrows:
+  description: Enable arrow notation extension
+- BangPatterns:
+  description: Enable bang patterns.
+- BinaryLiterals:
+  description: Enable support for binary literals.
+- BlockArguments:
+  description: Allow do blocks and other constructs as function arguments.
+- CApiFFI:
+  description: Enable the CAPI calling convention.
+- ConstrainedClassMethods:
+  description: Enable constrained class methods.
+- ConstraintKinds:
+  description: Enable a kind of constraints.
+- CPP:
+  description: Enable the C preprocessor.
+- CUSKs:
+  description: Enable detection of complete user-supplied kind signatures.
+- DataKinds:
+  description: Enable datatype promotion.
+- DatatypeContexts:
+  description: Allow contexts on data types.
+- DefaultSignatures:
+  description: Enable default signatures.
+- DeriveAnyClass:
+  description: Enable deriving for any class.
+- DeriveDataTypeable:
+  description: Enable deriving for the Data class. Implied by (deprecated) AutoDeriveTypeable.
+- DeriveFoldable:
+  description: Enable deriving for the Foldable class. Implied by DeriveTraversable.
+- DeriveFunctor:
+  description: Enable deriving for the Functor class. Implied by DeriveTraversable.
+- DeriveGeneric:
+  description: Enable deriving for the Generic class.
+- DeriveLift:
+  description: Enable deriving for the Lift class
+- DeriveTraversable:
+  description: Enable deriving for the Traversable class.
+  implies: [ DeriveFunctor, DeriveFoldable ]
+- DerivingStrategies:
+  description: Enables deriving strategies.
+- DerivingVia:
+  description: Enable deriving instances via types of the same runtime representation.
+  implies: DerivingStrategies
+- DisambiguateRecordFields:
+  description: Enable record field disambiguation. Implied by RecordWildCards.
+- DuplicateRecordFields:
+  description: Allow definition of record types with identically-named fields.
+- EmptyCase:
+  description: Allow empty case alternatives.
+- EmptyDataDecls:
+  description: Allow definition of empty data types.
+- EmptyDataDeriving:
+  description: Allow deriving instances of standard type classes for empty data types.
+- ExistentialQuantification:
+  description: Enable liberalised type synonyms.
+- ExplicitForAll:
+  description: Enable explicit universal quantification. Implied by ScopedTypeVariables, LiberalTypeSynonyms, RankNTypes and ExistentialQuantification.
+- ExplicitNamespaces:
+  description: Enable using the keyword type to specify the namespace of entries in imports and exports (Explicit namespaces in import/export). Implied by TypeOperators and TypeFamilies.
+- ExtendedDefaultRules:
+  description: Use GHCi’s extended default rules in a normal module.
+- FieldSelectors:
+  description: Control visibility of field selector functions.
+- FlexibleContexts:
+  description: Remove some restrictions on class contexts
+- FlexibleInstances:
+  description: Enable flexible instances.
+  implies: TypeSynonymInstances
+- ForeignFunctionInterface:
+  description: Enable foreign function interface.
+- FunctionalDependencies:
+  description: Enable functional dependencies.
+  implies: MultiParamTypeClasses
+- GADTs:
+  description: Enable generalised algebraic data types.
+  implies: [ GADTSyntax, MonoLocalBinds ]
+- GADTSyntax:
+  description: Enable generalised algebraic data type syntax.
+- GeneralisedNewtypeDeriving:
+  description: Enable newtype deriving.
+- GHC2021:
+  description: Use GHC’s set of default language extensions from 2021
+- GHCForeignImportPrim:
+  description: Enable prim calling convention. Intended for internal use only.
+- Haskell2010:
+  description: Use the Haskell 2010 language variant.
+- Haskell98:
+  description: Use the Haskell 98 language variant.
+- HexFloatLiterals:
+  description: Enable support for hexadecimal floating point literals.
+- ImplicitParams:
+  description: Enable Implicit Parameters.
+- ImplicitPrelude:
+  description: Don’t implicitly import Prelude. Implied by RebindableSyntax.
+- ImportQualifiedPost:
+  description: ImportQualifiedPost allows the syntax import M qualified
+- ImpredicativeTypes:
+  description: Enable impredicative types.
+  implies: RankNTypes
+- IncoherentInstances:
+  description: Enable incoherent instances.
+  implies: OverlappingInstances
+- InstanceSigs:
+  description: Enable instance signatures.
+- InterruptibleFFI:
+  description: Enable interruptible FFI.
+- KindSignatures:
+  description: Enable kind signatures. Implied by TypeFamilies and PolyKinds.
+- LambdaCase:
+  description: Enable lambda-case expressions.
+- LexicalNegation:
+  description: Use whitespace to determine whether the minus sign stands for negation or subtraction.
+- LiberalTypeSynonyms:
+  description: Enable liberalised type synonyms.
+- LinearTypes:
+  description: Enable linear types.
+- MagicHash:
+  description: Allow # as a postfix modifier on identifiers.
+- MonadComprehensions:
+  description: Enable monad comprehensions.
+- MonoLocalBinds:
+  description: Enable do not generalise local bindings. Implied by TypeFamilies and GADTs.
+- MonomorphismRestriction:
+  description: Disable the monomorphism restriction.
+- MultiParamTypeClasses:
+  description: Enable multi parameter type classes. Implied by FunctionalDependencies.
+- MultiWayIf:
+  description: Enable multi-way if-expressions.
+- NamedFieldPuns:
+  description: Enable record puns.
+- NamedWildCards:
+  description: Enable named wildcards.
+- NegativeLiterals:
+  description: Enable support for negative literals.
+- NondecreasingIndentation:
+  description: Allow nested contexts to be at the same indentation level as its enclosing context.
+- NPlusKPatterns:
+  description: Enable support for n+k patterns. Implied by Haskell98.
+- NullaryTypeClasses:
+  description: Deprecated, does nothing. nullary (no parameter) type classes are now enabled using MultiParamTypeClasses.
+- NumDecimals:
+  description: Enable support for ‘fractional’ integer literals.
+- NumericUnderscores:
+  description: Enable support for numeric underscores.
+- OverlappingInstances:
+  description: Enable overlapping instances.
+- OverloadedLabels:
+  description: Enable overloaded labels.
+- OverloadedLists:
+  description: Enable overloaded lists.
+- OverloadedRecordDot:
+  description: Record ‘.’ syntax
+- OverloadedRecordUpdate:
+  description: Record ‘.’ syntax record updates
+- OverloadedStrings:
+  description: Enable overloaded string literals.
+- PackageImports:
+  description: Enable package-qualified imports.
+- ParallelListComp:
+  description: Enable parallel list comprehensions.
+- PartialTypeSignatures:
+  description: Enable partial type signatures.
+- PatternGuards:
+  description: Disable pattern guards. Implied by Haskell98.
+- PatternSynonyms:
+  description: Enable pattern synonyms.
+- PolyKinds:
+  description: Enable kind polymorphism.
+  implies: KindSignatures
+- PostfixOperators:
+  description: Enable postfix operators.
+- QualifiedDo:
+  description: Enable qualified do-notation desugaring.
+- QuantifiedConstraints:
+  description: Allow forall quantifiers in constraints.
+- QuasiQuotes:
+  description: Enable quasiquotation.
+- Rank2Types:
+  description: Enable rank-2 types. Synonym for RankNTypes.
+- RankNTypes:
+  description: Enable rank-N types. Implied by ImpredicativeTypes.
+- RebindableSyntax:
+  description: Employ rebindable syntax.
+  implies: NoImplicitPrelude
+- RecordWildCards:
+  description: Enable record wildcards.
+  implies: DisambiguateRecordFields
+- RecursiveDo:
+  description: Enable recursive do (mdo) notation.
+- RoleAnnotations:
+  description: Enable role annotations.
+- Safe:
+  description: Enable the Safe Haskell Safe mode.
+- ScopedTypeVariables:
+  description: Enable lexically-scoped type variables.
+- StandaloneDeriving:
+  description: Enable standalone deriving.
+- StandaloneKindSignatures:
+  description: Allow the use of standalone kind signatures.
+- StarIsType:
+  description: Treat * as Data.Kind.Type.
+- StaticPointers:
+  description: Enable static pointers.
+- Strict:
+  description: Make bindings in the current module strict by default.
+- StrictData:
+  description: Enable default strict datatype fields.
+- TemplateHaskell:
+  description: Enable Template Haskell.
+- TemplateHaskellQuotes:
+  description: Enable quotation subset of Template Haskell.
+- TraditionalRecordSyntax:
+  description: Disable support for traditional record syntax (as supported by Haskell 98) C {f = x}
+- TransformListComp:
+  description: Enable generalised list comprehensions.
+- Trustworthy:
+  description: Enable the Safe Haskell Trustworthy mode.
+- TupleSections:
+  description: Enable tuple sections.
+- TypeApplications:
+  description: Enable type application syntax in terms, patterns and types.
+- TypeFamilies:
+  description: Enable type families.
+  implies: [ ExplicitNamespaces, KindSignatures, MonoLocalBinds ]
+- TypeFamilyDependencies:
+  description: Enable injective type families.
+  implies: TypeFamilies
+- TypeInType:
+  description: Deprecated. Enable kind polymorphism and datatype promotion.
+- TypeOperators:
+  description: Enable type operators.
+  implies: ExplicitNamespaces
+- TypeSynonymInstances:
+  description: Enable type synonyms in instance heads. Implied by FlexibleInstances.
+- UnboxedSums:
+  description: Enable unboxed sums.
+- UnboxedTuples:
+  description: Enable the use of unboxed tuple syntax.
+- UndecidableInstances:
+  description: Enable undecidable instances.
+- UndecidableSuperClasses:
+  description: Allow all superclass constraints, including those that may result in non-termination of the typechecker.
+- UnicodeSyntax:
+  description: Enable unicode syntax.
+- UnliftedDatatypes:
+  description: Enable unlifted data types.
+- UnliftedFFITypes:
+  description: Enable unlifted FFI types
+- UnliftedNewtypes:
+  description: Enable unlifted newtypes.
+- Unsafe:
+  description: Enable Safe Haskell Unsafe mode.
+- ViewPatterns:
+  description: Enable view patterns.
