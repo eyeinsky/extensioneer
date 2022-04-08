@@ -5,8 +5,10 @@ import Control.Monad.Except
 import Data.Foldable
 import Data.Map qualified as M
 import Data.Maybe
+import Data.List qualified as L
 
 import System.Environment
+import System.Directory
 
 import Hpack.Yaml
 import Hpack
@@ -22,7 +24,7 @@ ioExcept e = runExceptT e >>= \case
 embed :: (MonadError e m, MonadIO m) => IO (Either e a) -> m a
 embed action = liftIO action >>= either throwError pure
 
-
+type M m a = (MonadError String m, MonadIO m) => m a
 
 hot, main :: IO ()
 hot@main = ioExcept $ do
@@ -32,21 +34,44 @@ hot@main = ioExcept $ do
     p : _ -> return p
     _ -> throwError "no path specified"
 
-  let o = defaultDecodeOptions {decodeOptionsTarget = p }
-  r :: DecodeResult <- embed $ readPackageConfig o
+  dir <- liftIO $ doesDirectoryExist p
+  if dir
+    then withDir p
+    else do
+      file <- liftIO $ doesFileExist p
+      if file
+        then do
+          exts <- getFileExtensions p
+          liftIO $ do
+            putStrLn $ "# Extensions used in '" <> p <> "'"
+            forM_ exts $ \e -> putStrLn $ "- " <> e
+        else throwError $ "'" <> p <> "' is not a file nor a directory"
 
+getAllExtensions :: DecodeResult -> [String]
+getAllExtensions result =
   let
-    p = decodeResultPackage r
-    lib = maybe [] pure $ packageLibrary p -- :: Maybe (Section Library)
-    ilib = M.toList $ packageInternalLibraries p -- :: Map String (Section Library)
-    es = M.toList $ packageExecutables p -- :: Map String (Section Executable)
-    ts = M.toList $ packageTests p -- :: Map String (Section Executable)
-    bs = M.toList $ packageBenchmarks p -- :: Map String (Section Executable)
+    pkg = decodeResultPackage result
+    lib = maybe [] pure $ packageLibrary pkg -- :: Maybe (Section Library)
+    ilib = M.toList $ packageInternalLibraries pkg -- :: Map String (Section Library)
+    es = M.toList $ packageExecutables pkg -- :: Map String (Section Executable)
+    ts = M.toList $ packageTests pkg -- :: Map String (Section Executable)
+    bs = M.toList $ packageBenchmarks pkg -- :: Map String (Section Executable)
 
     g a = sectionDefaultExtensions . snd $ a
     f a = map g a
 
     all = map sectionDefaultExtensions lib <> f ilib <> f es <> f ts <> f bs
+    all' = L.sort $ L.nub all
+  in concat all'
 
-  liftIO $ print all
-  liftIO $ putStrLn "end"
+getFileExtensions :: FilePath -> M m [String]
+getFileExtensions path = do
+  let opts = defaultDecodeOptions {decodeOptionsTarget = path }
+  result :: DecodeResult <- embed $ readPackageConfig opts
+  return $ getAllExtensions result
+
+
+
+withDir :: FilePath -> M m ()
+withDir p = do
+  liftIO $ putStrLn $ "directory argument: " <> p
