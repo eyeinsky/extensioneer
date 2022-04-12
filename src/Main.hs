@@ -51,22 +51,18 @@ printSummaryTable paths = do
       putStrLn $ "# " <> show n <> " - " <> p
     putStrLn ""
 
-    let n = length paths
-
     forM_ (merge pairs) $ \(ext, ps) -> do
       let ns = catMaybes $ L.sort $ map (flip lookup f2n) ps
-          strs = map f $ mbList 0 ns
-            where f = \case
-                    Just n -> show n
-                    _ -> " "
+          strs = map f $ boolList 0 ns
+            where
+              f (n, b) = let s = show n
+                in if b then s else replicate (length s) ' '
       printf "- %-28s # %s\n" ext $ L.intercalate " " strs
 
-mbList :: Int -> [Int] -> [Maybe Int]
-mbList n yss = case yss of
-  (y : ys) -> if n == y
-    then Just n : next ys
-    else Nothing : next yss
-    where next = mbList (n + 1)
+boolList :: Int -> [Int] -> [(Int, Bool)]
+boolList n yss = case yss of
+  (y : ys) -> let b = n == y
+    in (n, b) : boolList (n + 1) (if b then ys else yss)
   _ -> []
 
 -- * Pure
