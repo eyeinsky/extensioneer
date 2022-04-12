@@ -31,6 +31,8 @@ import Distribution.Types.GenericPackageDescription as Cabal
 import Distribution.Verbosity as Cabal
 
 
+import PredefinedExtensionSets
+
 data Args = Args FilePath
 
 -- * Base monad

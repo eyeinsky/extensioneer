@@ -15,6 +15,7 @@ build-type:     Simple
 executable extensioneer
   main-is: Main.hs
   other-modules:
+      PredefinedExtensionSets
       Paths_extensioneer
   hs-source-dirs:
       src
