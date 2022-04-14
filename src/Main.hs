@@ -108,7 +108,7 @@ getAllExtensions result =
 
     all = map sectionDefaultExtensions lib <> f ilib <> f es <> f ts <> f bs
     all' = L.sort $ L.nub all
-  in concat all'
+  in L.nub $ L.sort $ concat all'
 
 getFileExtensions :: C m => FilePath -> m [String]
 getFileExtensions path = do
