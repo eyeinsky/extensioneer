@@ -2,6 +2,7 @@ module Main where
 
 import Prelude
 import Control.Monad.Except
+import Control.Arrow
 import Data.Foldable
 import Data.Map qualified as M
 import Data.Maybe
@@ -40,7 +41,12 @@ hot@main = ioExcept $ do
 argsToFiles :: C m => [String] -> m [FilePath]
 argsToFiles args = do
   bools <- mapM (liftIO . doesFileExist) args
-  return $ map snd $ filter fst $ zip bools args
+  let zip' = zip bools args
+      (existing, nonExisting) = (map snd *** map snd) $ L.partition fst zip'
+  when (not $ null nonExisting) $ throwError
+    $ "The following paths do not exist: \n"
+    <> unlines (map ("- " <>) nonExisting)
+  return existing
 
 printSummaryTable :: C m => [FilePath] -> m ()
 printSummaryTable paths = do
