@@ -8,6 +8,7 @@ license: GPL-2
 dependencies:
 - base
 - directory
+- Cabal
 - containers
 - hpack
 - mtl
