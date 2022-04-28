@@ -14,6 +14,7 @@ import Text.Printf
 
 import System.Environment
 import System.Directory
+import Options.Applicative as Opts
 
 -- | Hpack
 import Hpack.Yaml as Hpack
@@ -23,7 +24,7 @@ import Hpack.Config as Hpack
 -- | Cabal
 import Distribution.Types.BuildInfo as Cabal
 import Language.Haskell.Extension as Cabal
-import Distribution.Simple as Cabal
+import Distribution.Simple as Cabal hiding (Args)
 -- import Distribution.Simple.PackageDescription
 import Distribution.PackageDescription as Cabal
 import Distribution.PackageDescription.Parsec as Cabal
@@ -31,9 +32,9 @@ import Distribution.Types.GenericPackageDescription as Cabal
 import Distribution.Verbosity as Cabal
 
 
+
 import PredefinedExtensionSets
 
-data Args = Args FilePath
 
 -- * Base monad
 
@@ -60,10 +61,54 @@ path = \case
   Cabal p -> p
   Hpack p -> p
 
-hot, main :: IO ()
-hot@main = ioExcept $ do
-  packageFilePaths <- argsToFiles =<< liftIO getArgs
-  printSummaryTable packageFilePaths
+-- * Main
+
+data Args = Args
+  { ghc2021     :: Bool
+  , haskell2010 :: Bool
+  , haskell98   :: Bool
+  , paths       :: [FilePath]
+  }
+
+args :: Opts.Parser Args
+args = Args
+  <$> switch (long "ghc2021" <> help (allOf "GHC2021"))
+  <*> switch (long "haskell2010" <> help (allOf "Haskell2010"))
+  <*> switch (long "haskell98" <> help (allOf "Haskell98"))
+  <*> many (argument str (metavar "FILENAME.."))
+  where
+    allOf title = "Include all extensions from " <> title
+
+opts :: ParserInfo Args
+opts = info (args <**> helper)
+  ( fullDesc
+  <> header "extensioneer - Inspect extensions in cabal and hpack files" )
+
+main :: IO ()
+main = ioExcept $ do
+
+  args <- liftIO $ execParser opts
+  packageFilePaths <- argsToFiles $ paths args
+  fileExtss :: FileExts <- getFilesExtensions packageFilePaths
+
+  let
+    labels = map path packageFilePaths :: [String]
+    labels' =
+        prependIf (ghc2021 args) "GHC2021"
+      $ prependIf (haskell2010 args) "Haskell2010"
+      $ prependIf (haskell98 args) "Haskell98"
+      $ labels
+
+    index = zip labels' [0..]
+
+    labelExts = map (first path) fileExtss :: [LabelExts]
+    labelExts' =
+        prependIf (ghc2021 args) ("GHC2021", lang_GHC2021)
+      $ prependIf (haskell2010 args) ("Haskell2010", lang_Haskell2010)
+      $ prependIf (haskell98 args) ("Haskell98", lang_Haskell98)
+      $ labelExts
+
+  printSummaryTable index labelExts'
 
 -- * Extension table for multiple packages
 
@@ -90,17 +135,15 @@ argsToFiles args = do
 
   return hpackOrCabal
 
-printSummaryTable :: C m => [PackageFilePath] -> m ()
-printSummaryTable paths = do
-  let f2n = zip paths [0..]
-  pairs <- getFilesExtensions paths
+printSummaryTable :: C m => [(String, Int)] -> [LabelExts] -> m ()
+printSummaryTable index pairs = do
   liftIO $ do
-    forM_ f2n $ \(p, n) -> do
-      putStrLn $ "# " <> show n <> " - " <> path p
+    forM_ index $ \(p, n) -> do
+      putStrLn $ "# " <> show n <> " - " <> p
     putStrLn ""
 
     forM_ (merge pairs) $ \(ext, ps) -> do
-      let ns = catMaybes $ L.sort $ map (flip lookup f2n) ps
+      let ns = catMaybes $ L.sort $ map (flip lookup index) ps
           strs = map f $ boolList 0 ns
             where
               f (n, b) = let s = show n
@@ -115,13 +158,16 @@ boolList n yss = case yss of
 
 -- * Pure
 
-type FileExts = [(PackageFilePath, [String])]
-type ExtFs = [(String, [PackageFilePath])]
+type FileExts' = (PackageFilePath, [String])
+type FileExts = [FileExts']
+type ExtFs = [(String, [String])]
 
-merge :: FileExts -> ExtFs
+type LabelExts = (String, [String])
+
+merge :: [LabelExts] -> ExtFs
 merge = pass
   where
-    pass :: FileExts -> ExtFs
+    pass :: [LabelExts] -> ExtFs
     pass xs = case xs of
       _ : _
         | heads@(_:_) <- nextExts xs -> let
@@ -138,7 +184,7 @@ merge = pass
           in (ext, files) : pass xs'
       _ -> []
 
-    nextExts :: FileExts -> [String]
+    nextExts :: [LabelExts] -> [String]
     nextExts xs = catMaybes $ map (listToMaybe . snd) xs
 
 getFilesExtensions :: C m => [PackageFilePath] -> m FileExts
@@ -223,3 +269,6 @@ ext2string = \case
 -- | Deduplicate and sort list
 order :: Eq a => Ord a => [a] -> [a]
 order = L.sort . L.nub
+
+prependIf :: Bool -> a -> [a] -> [a]
+prependIf b x xs = if b then x : xs else xs

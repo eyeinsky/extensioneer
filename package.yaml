@@ -6,10 +6,10 @@ maintainer: markus.l2ll@gmail.com
 license: GPL-2
 
 dependencies:
-- base
-- directory
 - Cabal
+- base
 - containers
+- directory
 - hpack
 - mtl
 - optparse-applicative
