@@ -3,11 +3,20 @@ version: '0.1.0.0'
 category: CLI
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
-license: GPL-2
+license: MIT
+license-file: LICENSE
+
+synopsis: Inspect extensions in cabal and hpack files
+description: |
+
+  extensioneer - Inspect extensions in cabal and hpack files
+
+  See readme for more: https://github.com/eyeinsky/extensioneer
+
 
 dependencies:
 - Cabal
-- base
+- base >= 4.11 && < 5
 - containers
 - directory
 - hpack

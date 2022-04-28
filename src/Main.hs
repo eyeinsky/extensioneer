@@ -1,17 +1,16 @@
 module Main where
 
 import Prelude
-import Control.Monad.Except
-import Control.Arrow
 import Data.Foldable
 import Data.Map qualified as M
 import Data.Maybe
 import Data.List qualified as L
 import Data.Either qualified as E
 import Data.Kind
-import Debug.Trace
-import Text.Printf
+import Control.Monad.Except
+import Control.Arrow
 
+import Text.Printf
 import System.Environment
 import System.Directory
 import Options.Applicative as Opts
@@ -25,31 +24,15 @@ import Hpack.Config as Hpack
 import Distribution.Types.BuildInfo as Cabal
 import Language.Haskell.Extension as Cabal
 import Distribution.Simple as Cabal hiding (Args)
--- import Distribution.Simple.PackageDescription
 import Distribution.PackageDescription as Cabal
 import Distribution.PackageDescription.Parsec as Cabal
 import Distribution.Types.GenericPackageDescription as Cabal
 import Distribution.Verbosity as Cabal
 
-
-
 import PredefinedExtensionSets
 
 
--- * Base monad
-
-ioExcept :: ExceptT String IO () -> IO ()
-ioExcept e = runExceptT e >>= \case
-  Left e -> putStrLn $ "error: " <> e
-  Right r -> pure ()
-
-embed :: (MonadError e m, MonadIO m) => IO (Either e a) -> m a
-embed action = liftIO action >>= either throwError pure
-
-type C :: (Type -> Type) -> Constraint
-type C m = (Monad m, MonadError String m, MonadIO m)
-
--- *
+-- * Types
 
 data PackageFilePath
   = Cabal FilePath
@@ -61,7 +44,11 @@ path = \case
   Cabal p -> p
   Hpack p -> p
 
--- * Main
+type FileExts = (PackageFilePath, [String])
+type ExtFs = [(String, [String])]
+type LabelExts = (String, [String])
+
+-- * CLI arguments
 
 data Args = Args
   { ghc2021     :: Bool
@@ -75,7 +62,7 @@ args = Args
   <$> switch (long "ghc2021" <> help (allOf "GHC2021"))
   <*> switch (long "haskell2010" <> help (allOf "Haskell2010"))
   <*> switch (long "haskell98" <> help (allOf "Haskell98"))
-  <*> many (argument str (metavar "FILENAME.."))
+  <*> some (argument str (metavar "paths to cabal or hpack files"))
   where
     allOf title = "Include all extensions from " <> title
 
@@ -84,12 +71,14 @@ opts = info (args <**> helper)
   ( fullDesc
   <> header "extensioneer - Inspect extensions in cabal and hpack files" )
 
+-- * Main
+
 main :: IO ()
 main = ioExcept $ do
 
   args <- liftIO $ execParser opts
-  packageFilePaths <- argsToFiles $ paths args
-  fileExtss :: FileExts <- getFilesExtensions packageFilePaths
+  packageFilePaths <- resolvePaths $ paths args
+  fileExtss :: [FileExts] <- getFilesExtensions packageFilePaths
 
   let
     labels = map path packageFilePaths :: [String]
@@ -110,10 +99,18 @@ main = ioExcept $ do
 
   printSummaryTable index labelExts'
 
--- * Extension table for multiple packages
+type C :: (Type -> Type) -> Constraint
+type C m = (Monad m, MonadError String m, MonadIO m)
 
-argsToFiles :: C m => [String] -> m [PackageFilePath]
-argsToFiles args = do
+ioExcept :: ExceptT String IO () -> IO ()
+ioExcept e = runExceptT e >>= \case
+  Left e -> putStrLn $ "error: " <> e
+  Right r -> pure ()
+
+-- | Check if all paths exist, resolve them to cabal and hpack files
+-- by extension
+resolvePaths :: C m => [String] -> m [PackageFilePath]
+resolvePaths args = do
   bools <- mapM (liftIO . doesFileExist) args
   let zip' = zip bools args
       (existing, nonExisting) = (map snd *** map snd) $ L.partition fst zip'
@@ -136,13 +133,13 @@ argsToFiles args = do
   return hpackOrCabal
 
 printSummaryTable :: C m => [(String, Int)] -> [LabelExts] -> m ()
-printSummaryTable index pairs = do
+printSummaryTable index labelExts = do
   liftIO $ do
     forM_ index $ \(p, n) -> do
       putStrLn $ "# " <> show n <> " - " <> p
     putStrLn ""
 
-    forM_ (merge pairs) $ \(ext, ps) -> do
+    forM_ (merge labelExts) $ \(ext, ps) -> do
       let ns = catMaybes $ L.sort $ map (flip lookup index) ps
           strs = map f $ boolList 0 ns
             where
@@ -155,14 +152,6 @@ boolList n yss = case yss of
   (y : ys) -> let b = n == y
     in (n, b) : boolList (n + 1) (if b then ys else yss)
   _ -> []
-
--- * Pure
-
-type FileExts' = (PackageFilePath, [String])
-type FileExts = [FileExts']
-type ExtFs = [(String, [String])]
-
-type LabelExts = (String, [String])
 
 merge :: [LabelExts] -> ExtFs
 merge = pass
@@ -187,7 +176,7 @@ merge = pass
     nextExts :: [LabelExts] -> [String]
     nextExts xs = catMaybes $ map (listToMaybe . snd) xs
 
-getFilesExtensions :: C m => [PackageFilePath] -> m FileExts
+getFilesExtensions :: C m => [PackageFilePath] -> m [FileExts]
 getFilesExtensions fs = flip traverse fs $ \pfp -> case pfp of
   Hpack p -> (pfp,) <$> hpackGetExtensions p
   Cabal p -> (pfp,) <$> cabalGetExtensions p
@@ -217,7 +206,8 @@ hpackGetAllExtensions result =
 hpackGetExtensions :: C m => FilePath -> m [String]
 hpackGetExtensions path = do
   let opts = defaultDecodeOptions {decodeOptionsTarget = path }
-  result :: DecodeResult <- embed $ readPackageConfig opts
+  result :: DecodeResult <- liftIO (readPackageConfig opts)
+    >>= either throwError pure
   return $ hpackGetAllExtensions result
 
 -- * Cabal
@@ -225,8 +215,8 @@ hpackGetExtensions path = do
 -- | Gather all extensions from every corner of the cabal file.
 --
 -- https://hackage.haskell.org/package/Cabal/docs/Distribution-Types-GenericPackageDescription.html#t:GenericPackageDescription
-cabalGetExtensions' :: FilePath -> IO [Extension]
-cabalGetExtensions' path = do
+cabalGetExtensionsIO :: FilePath -> IO [Extension]
+cabalGetExtensionsIO path = do
   gpd <- liftIO $ readGenericPackageDescription silent path
   let
       libsExts = map (allExtensions . libBuildInfo)
@@ -255,7 +245,7 @@ cabalGetExtensions' path = do
 
 cabalGetExtensions :: C m => FilePath -> m [String]
 cabalGetExtensions path =
-  fmap order . mapM ext2string =<< liftIO (cabalGetExtensions' path)
+  fmap order . mapM ext2string =<< liftIO (cabalGetExtensionsIO path)
 
 ext2string :: C m => Extension -> m String
 ext2string = \case
