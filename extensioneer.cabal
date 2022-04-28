@@ -17,6 +17,8 @@ maintainer:     markus.l2ll@gmail.com
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
+extra-source-files:
+    CHANGELOG.md
 
 executable extensioneer
   main-is: Main.hs

@@ -5,6 +5,8 @@ author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: MIT
 license-file: LICENSE
+extra-source-files:
+- CHANGELOG.md
 
 synopsis: Inspect extensions in cabal and hpack files
 description: |
